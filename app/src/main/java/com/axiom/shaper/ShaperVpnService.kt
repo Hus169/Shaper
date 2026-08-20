@@ -3,6 +3,7 @@ package com.axiom.shaper
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.net.VpnService
 import android.os.Build
@@ -58,7 +59,7 @@ class ShaperVpnService : VpnService() {
         stopForeground(STOP_FOREGROUND_REMOVE)
         
         // Reset UI state in MainActivity
-        getSharedPreferences("AxiomPrefs", MODE_PRIVATE).edit().putBoolean("is_active", false).apply a
+        getSharedPreferences("AxiomPrefs", Context.MODE_PRIVATE).edit().putBoolean("is_active", false).apply()
     }
 
     private fun createNotificationChannel() {

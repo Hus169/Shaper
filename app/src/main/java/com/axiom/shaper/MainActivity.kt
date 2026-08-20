@@ -111,7 +111,7 @@ class MainActivity : AppCompatActivity() {
         }
         setActive(true)
         updateUI()
-        Toast.makeText(this, "Matrix engaged. Traffic is being shaped.", Toast.LENGTH_SHORT).show
+        Toast.makeText(this, "Matrix engaged. Traffic is being shaped.", Toast.LENGTH_SHORT).show()
     }
 
     private fun stopShaperService() {
