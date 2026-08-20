@@ -1,6 +1,3 @@
-// ==============================================================================
-// File: app/build.gradle.kts
-// ==============================================================================
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -16,29 +13,38 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-        
-        // Enable NDK build for the C++ shaping engine
-        externalNativeBuild {
-            cmake {
-                cppFlags += "-std=c++17 -O2"
-            }
-        }
+
         ndk {
             abiFilters += listOf("arm64-v8a", "armeabi-v7a")
         }
     }
 
+    // FORCE JVM 17 ALIGNMENT FOR BOTH JAVA AND KOTLIN
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = true
+            isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+        debug {
+            isMinifyEnabled = false
         }
     }
     
-    // Link the C++ source directory
     externalNativeBuild {
         cmake {
             path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
         }
     }
 }
