@@ -8,6 +8,8 @@ import android.net.VpnService
 import android.os.Build
 import android.os.Bundle
 import android.widget.Button
+import android.widget.EditText
+import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -17,76 +19,96 @@ import androidx.core.content.ContextCompat
 class MainActivity : AppCompatActivity() {
     private val VPN_REQUEST_CODE = 100
     private val NOTIFICATION_REQUEST_CODE = 101
-    private lateinit var tvStatus: TextView
-    private lateinit var btnToggle: Button
-    private val PREFS_NAME = "AxiomPrefs"
-    private val KEY_IS_ACTIVE = "is_active"
+    
+    private lateinit var btnToggleTun: Button
+    private lateinit var btnToggleWan: Button
+    private lateinit var etTargetIp: EditText
+    private lateinit var sbBandwidth: SeekBar
+    private lateinit var tvSliderValue: TextView
+
+    private var isTunActive = false
+    private var isWanActive = false
+    private var currentMbps = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        tvStatus = findViewById(R.id.tv_status)
-        btnToggle = findViewById(R.id.btn_toggle)
+        btnToggleTun = findViewById(R.id.btn_toggle_tun)
+        btnToggleWan = findViewById(R.id.btn_toggle_wan)
+        etTargetIp = findViewById(R.id.et_target_ip)
+        sbBandwidth = findViewById(R.id.sb_bandwidth)
+        tvSliderValue = findViewById(R.id.tv_slider_value)
 
-        updateUI()
+        setupTunButton()
+        setupWanSlider()
+        setupWanButton()
+    }
 
-        btnToggle.setOnClickListener {
-            if (isActive()) {
-                stopShaperService()
+    private fun setupTunButton() {
+        btnToggleTun.setOnClickListener {
+            if (isTunActive) {
+                stopService(Intent(this, ShaperVpnService::class.java))
+                isTunActive = false
+                btnToggleTun.text = "ENGAGE LOCAL MATRIX"
+                btnToggleTun.backgroundTintList = android.content.res.ColorStateList.valueOf(getColor(android.R.color.holo_green_light))
             } else {
-                requestPermissionsAndStart()
+                requestPermissionsAndStartTun()
             }
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        updateUI()
+    private fun setupWanSlider() {
+        sbBandwidth.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                currentMbps = progress
+                tvSliderValue.text = "$currentMbps Mbps"
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
     }
 
-    private fun updateUI() {
-        val active = isActive()
-        if (active) {
-            tvStatus.text = "Status: INTERCEPTING"
-            tvStatus.setTextColor(getColor(android.R.color.holo_green_light))
-            btnToggle.text = "DISENGAGE"
-            btnToggle.backgroundTintList = android.content.res.ColorStateList.valueOf(getColor(android.R.color.holo_red_light))
-        } else {
-            tvStatus.text = "Status: STANDBY"
-            tvStatus.setTextColor(getColor(android.R.color.darker_gray))
-            btnToggle.text = "ENGAGE MATRIX"
-            btnToggle.backgroundTintList = android.content.res.ColorStateList.valueOf(getColor(android.R.color.holo_green_light))
+    private fun setupWanButton() {
+        btnToggleWan.setOnClickListener {
+            if (isWanActive) {
+                WanSaturator.stop()
+                isWanActive = false
+                btnToggleWan.text = "START WAN SATURATION"
+                btnToggleWan.backgroundTintList = android.content.res.ColorStateList.valueOf(getColor(android.R.color.holo_red_light))
+                Toast.makeText(this, "WAN Saturator Disengaged.", Toast.LENGTH_SHORT).show()
+            } else {
+                val ip = etTargetIp.text.toString().trim()
+                if (ip.isEmpty() || !ip.contains(".")) {
+                    Toast.makeText(this, "Enter a valid Target IP", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                if (currentMbps == 0) {
+                    Toast.makeText(this, "Set bandwidth > 0 Mbps", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                
+                WanSaturator.start(ip, 5001, currentMbps) // Port 5001 is standard iPerf3
+                isWanActive = true
+                btnToggleWan.text = "STOP WAN SATURATION"
+                btnToggleWan.backgroundTintList = android.content.res.ColorStateList.valueOf(getColor(android.R.color.holo_green_dark))
+                Toast.makeText(this, "Saturating WAN at $currentMbps Mbps...", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
-    private fun requestPermissionsAndStart() {
+    private fun requestPermissionsAndStartTun() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), NOTIFICATION_REQUEST_CODE)
                 return
             }
         }
-        prepareVpn()
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == NOTIFICATION_REQUEST_CODE) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                prepareVpn()
-            } else {
-                Toast.makeText(this, "Notification permission required for background status.", Toast.LENGTH_LONG).show()
-            }
-        }
-    }
-
-    private fun prepareVpn() {
         val intent = VpnService.prepare(this)
         if (intent != null) {
             startActivityForResult(intent, VPN_REQUEST_CODE)
         } else {
-            startShaperService()
+            startTunService()
         }
     }
 
@@ -94,39 +116,16 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == VPN_REQUEST_CODE && resultCode == RESULT_OK) {
-            startShaperService()
-        } else {
-            Toast.makeText(this, "VPN permission denied.", Toast.LENGTH_SHORT).show()
+            startTunService()
         }
-        updateUI()
     }
 
-    private fun startShaperService() {
+    private fun startTunService() {
         val intent = Intent(this, ShaperVpnService::class.java)
         intent.putExtra("kbps_limit", 1500L)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(intent)
-        } else {
-            startService(intent)
-        }
-        setActive(true)
-        updateUI()
-        Toast.makeText(this, "Matrix engaged. Traffic is being shaped.", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun stopShaperService() {
-        val intent = Intent(this, ShaperVpnService::class.java)
-        stopService(intent)
-        setActive(false)
-        updateUI()
-        Toast.makeText(this, "Matrix disengaged. Network restored.", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun setActive(active: Boolean) {
-        getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putBoolean(KEY_IS_ACTIVE, active).apply()
-    }
-
-    private fun isActive(): Boolean {
-        return getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getBoolean(KEY_IS_ACTIVE, false)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent) else startService(intent)
+        isTunActive = true
+        btnToggleTun.text = "DISENGAGE LOCAL MATRIX"
+        btnToggleTun.backgroundTintList = android.content.res.ColorStateList.valueOf(getColor(android.R.color.holo_red_light))
     }
 }
