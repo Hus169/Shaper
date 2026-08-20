@@ -1,0 +1,42 @@
+<!-- ============================================================================== -->
+<!-- File: app/src/main/AndroidManifest.xml                                         -->
+<!-- ============================================================================== -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.axiom.shaper">
+
+    <!-- Required permissions for VpnService and Network State -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="Axiom Shaper"
+        android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+        
+        <!-- Register the VpnService with the required permission -->
+        <service
+            android:name=".ShaperVpnService"
+            android:permission="android.permission.BIND_VPN_SERVICE"
+            android:exported="true"
+            android:foregroundServiceType="specialUse">
+            <intent-filter>
+                <action android:name="android.net.VpnService" />
+            </intent-filter>
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Network traffic shaping and analysis" />
+        </service>
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
