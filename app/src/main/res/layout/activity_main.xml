@@ -1,114 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#121212"
-    android:padding="24dp">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
-        android:orientation="vertical">
-
-        <ImageView
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:src="@drawable/ic_axiom_logo"
-            android:contentDescription="Axiom Logo" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="AXIOM SHAPER"
-            android:textColor="#00E676"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:letterSpacing="0.1" />
-
-        <!-- Local TUN Shaper Section -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:text="1. LOCAL DEVICE SHAPER (VpnService)"
-            android:textColor="#78909C"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
-        <Button
-            android:id="@+id/btn_toggle_tun"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:backgroundTint="#00E676"
-            android:text="ENGAGE LOCAL MATRIX"
-            android:textColor="#121212"
-            android:textStyle="bold" />
-
-        <!-- WAN Saturator Section -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:text="2. WAN LINK SATURATOR (Data Plane)"
-            android:textColor="#78909C"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-            
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Target IP (e.g., iPerf3 Server):"
-            android:textColor="#B0BEC5"
-            android:layout_marginTop="16dp"/>
-
-        <EditText
-            android:id="@+id/et_target_ip"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="203.0.113.50"
-            android:textColor="#FFFFFF"
-            android:textColorHint="#546E7A"
-            android:inputType="text"
-            android:backgroundTint="#00E676"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Bandwidth Reservation (Mbps):"
-            android:textColor="#B0BEC5"
-            android:layout_marginTop="16dp"/>
-
-        <SeekBar
-            android:id="@+id/sb_bandwidth"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="100"
-            android:progress="0"
-            android:progressTint="#00E676"
-            android:thumbTint="#00E676"/>
-
-        <TextView
-            android:id="@+id/tv_slider_value"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="0 Mbps"
-            android:textColor="#00E676"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:gravity="center"/>
-
-        <Button
-            android:id="@+id/btn_toggle_wan"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:backgroundTint="#FF5252"
-            android:text="START WAN SATURATION"
-            android:textColor="#FFFFFF"
-            android:textStyle="bold" />
-
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="#121212" android:padding="24dp">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:gravity="center_horizontal" android:orientation="vertical">
+        <ImageView android:layout_width="80dp" android:layout_height="80dp"
+            android:src="@drawable/ic_axiom_logo" android:contentDescription="Axiom Logo" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" android:text="AXIOM SHAPER"
+            android:textColor="#00E676" android:textSize="24sp" android:textStyle="bold" android:letterSpacing="0.1" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="32dp" android:text="1. LOCAL DEVICE SHAPER (VpnService)"
+            android:textColor="#78909C" android:textSize="14sp" android:textStyle="bold" />
+        <Button android:id="@+id/btn_toggle_tun" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="8dp"
+            android:backgroundTint="#00E676" android:text="ENGAGE LOCAL MATRIX"
+            android:textColor="#121212" android:textStyle="bold" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="32dp" android:text="2. WAN LINK SATURATOR (Data Plane)"
+            android:textColor="#78909C" android:textSize="14sp" android:textStyle="bold" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Target IP (e.g., iPerf3 Server):" android:textColor="#B0BEC5" android:layout_marginTop="16dp"/>
+        <EditText android:id="@+id/et_target_ip" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:hint="iperf.he.net"
+            android:textColor="#FFFFFF" android:textColorHint="#546E7A"
+            android:inputType="text" android:backgroundTint="#00E676"/>
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Bandwidth Reservation (Mbps):" android:textColor="#B0BEC5" android:layout_marginTop="16dp"/>
+        <SeekBar android:id="@+id/sb_bandwidth" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:max="100" android:progress="0"
+            android:progressTint="#00E676" android:thumbTint="#00E676"/>
+        <TextView android:id="@+id/tv_slider_value" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="0 Mbps"
+            android:textColor="#00E676" android:textSize="18sp" android:textStyle="bold" android:gravity="center"/>
+        <Button android:id="@+id/btn_toggle_wan" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="16dp"
+            android:backgroundTint="#FF5252" android:text="START WAN SATURATION"
+            android:textColor="#FFFFFF" android:textStyle="bold" />
     </LinearLayout>
 </ScrollView>
