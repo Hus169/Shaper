@@ -29,17 +29,13 @@ void saturate_thread(std::string target_ip, int target_port, uint64_t target_bps
     dest_addr.sin_port = htons(target_port);
     inet_pton(AF_INET, target_ip.c_str(), &dest_addr.sin_addr);
 
-    // Payload size: 1400 bytes (max safe UDP payload without fragmentation)
-    const size_t PAYLOAD_SIZE = 1400; 
+    const size_t PAYLOAD_SIZE = 1400; // Max safe UDP payload
     std::vector<char> payload(PAYLOAD_SIZE, 'A');
 
-    // Calculate timing metrics
-    // Bits per packet = PAYLOAD_SIZE * 8
+    // Calculate timing: Bits per packet / Target bits per second = Seconds per packet
     double bits_per_packet = PAYLOAD_SIZE * 8.0;
     double packets_per_second = static_cast<double>(target_bps) / bits_per_packet;
-    
-    // Delay per packet in microseconds
-    double delay_us = 1000000.0 / packets_per_second;
+    double delay_us = 1000000.0 / packets_per_second; // Microseconds
     
     LOGI("Target: %s:%d | Rate: %llu bps | Delay: %.2f us", 
          target_ip.c_str(), target_port, (unsigned long long)target_bps, delay_us);
@@ -47,22 +43,18 @@ void saturate_thread(std::string target_ip, int target_port, uint64_t target_bps
     auto next_send = std::chrono::steady_clock::now();
 
     while (g_saturator_running.load(std::memory_order_relaxed)) {
-        // Send the UDP packet
         sendto(sock, payload.data(), payload.size(), 0, 
                (struct sockaddr*)&dest_addr, sizeof(dest_addr));
 
-        // Calculate next wake-up time to maintain exact bitrate
         next_send += std::chrono::microseconds(static_cast<long long>(delay_us));
         auto now = std::chrono::steady_clock::now();
         
         if (next_send > now) {
             std::this_thread::sleep_until(next_send);
         } else {
-            // If we fell behind, reset the clock to prevent burst catching
-            next_send = now; 
+            next_send = now; // Prevent burst catching if we fall behind
         }
     }
-
     close(sock);
     LOGI("Saturator thread terminated.");
 }
