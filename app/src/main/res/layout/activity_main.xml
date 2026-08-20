@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#121212"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="32dp">
+
+    <ImageView
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:src="@drawable/ic_axiom_logo"
+        android:contentDescription="Axiom Logo" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="AXIOM SHAPER"
+        android:textColor="#00E676"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.1" />
+
+    <TextView
+        android:id="@+id/tv_status"
+        android:layout_width="wrap_content"
+        android:layout_height=" wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Status: STANDBY"
+        android:textColor="#B0BEC5"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/tv_target"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Target: 1500 kbps"
+        android:textColor="#78909C"
+        android:textSize="14sp" />
+
+    <Button
+        android:id="@+id/btn_toggle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="48dp"
+        android:backgroundTint="#00E676"
+        android:text="ENGAGE MATRIX"
+        android:textColor="#121212"
+        android:textStyle="bold"
+        android:textSize="16sp" />
+
+</LinearLayout>
