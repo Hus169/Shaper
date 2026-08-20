@@ -4,7 +4,7 @@
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <arpa/inet2.h>
+#include <arpa/inet.h>
 #include <chrono>
 #include <thread>
 #include <vector>
@@ -53,7 +53,6 @@ private:
     int tun_fd_, epoll_fd_;
     std::atomic<bool> running_;
     MicrosecondTokenBucket bucket_;
-    int proxy_fd_;
 
     void set_non_blocking(int fd) {
         int flags = fcntl(fd, F_GETFL, 0);
@@ -69,20 +68,10 @@ public:
         ev.events = EPOLLIN | EPOLLET;
         ev.data.fd = tun_fd_;
         epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, tun_fd_, &ev);
-
-        // Connect to local SOCKS5 proxy (must be running on the device)
-        proxy_fd_ = socket(AF_INET, SOCK_STREAM, 0);
-        struct sockaddr_in proxy_addr{};
-        proxy_addr.sin_family = AF_INET;
-        proxy_addr.sin_port = htons(1080); // Must match your local proxy port
-        inet_pton(AF_INET, "127.0.0.1", &proxy_addr.sin_addr);
-        connect(proxy_fd_, (struct sockaddr*)&proxy_addr, sizeof(proxy_addr));
-        set_non_blocking(proxy_fd_);
     }
 
     ~TunMatrix() {
         if (epoll_fd_ >= 0) close(epoll_fd_);
-        if (proxy_fd_ >= 0) close(proxy_fd_);
     }
 
     void run_event_loop() {
@@ -103,11 +92,9 @@ public:
                         auto delay = bucket_.consume(len);
                         if (delay.count() > 0) std::this_thread::sleep_for(delay);
 
-                        // 2. Forward shaped traffic to the local proxy
-                        // Note: A full implementation would parse IP/TCP headers to map 
-                        // connections. For this experimental matrix, we stream raw bytes 
-                        // to the proxy, which handles the actual internet routing.
-                        send(proxy_fd_, buffer.data(), len, MSG_NOSIGNAL);
+                        // 2. Note: This experimental matrix currently drops shaped packets 
+                        // to prevent network routing loops. To enable live traffic, a 
+                        // full user-space NAT proxy must be integrated here.
                     }
                 }
             }
