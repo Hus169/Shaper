@@ -57,7 +57,7 @@ private:
     int tun_fd_, epoll_fd_;
     std::atomic<bool> running_;
     MicrosecondTokenBucket bucket_;
-    uint64_t packet_count_ = 0;
+    uint64_t packet_count_;
 
     void set_non_blocking(int fd) {
         int flags = fcntl(fd, F_GETFL, 0);
@@ -65,7 +65,7 @@ private:
     }
 
 public:
-    TunMatrix(int fd, uint64_t kbps_limit) : tun_fd_(fd), bucket_(kbps_limit), running_(true) {
+    TunMatrix(int fd, uint64_t kbps_limit) : tun_fd_(fd), bucket_(kbps_limit), running_(true), packet_count_(0) {
         LOGI("Initializing TunMatrix with FD: %d", fd);
         set_non_blocking(tun_fd_);
         epoll_fd_ = epoll_create1(0);
@@ -90,7 +90,16 @@ public:
         std::vector<uint8_t> buffer(65535);
         LOGI("Event loop started. Waiting for packets...");
 
-        while (running_.load(std::memory_order_relaxederrno == EAGAIN || errno == EWOULDBLOCK) break;
+        while (running_.load(std::memory_order_relaxed)) {
+            int nfds = epoll_wait(epoll_fd_, events, 64, 100);
+            if (nfds <= 0) continue;
+
+            for (int i = 0; i < nfds; ++i) {
+                if (events[i].data.fd == tun_fd_ && (events[i].events & EPOLLIN)) {
+                    while (true) {
+                        ssize_t len = read(tun_fd_, buffer.data(), buffer.size());
+                        if (len < 0) {
+                            if (errno == EAGAIN || errno == EWOULDBLOCK) break;
                             LOGE("Read error: %s", strerror(errno));
                             break;
                         }
@@ -107,14 +116,16 @@ public:
                             std::this_thread::sleep_for(delay);
                         }
 
-                        // 2. Basic IPv4 UDP Forwarding Logic
-                        if (len >= 28 && version == 4 && protocol == 17) { // UDP
-                            uint32_t dest_ip = (buffer[16] << 24) | (buffer[17] << 16) | (buffer[18] << 8) | buffer[19];
-                            uint16_t dest_port = (buffer[36] << 8) | buffer[37];
-                            
-                            // Note: For a full production app, this requires a connection map (NAT) 
-                            // to route responses back to the TUN interface. 
-                            // This experimental forwarder proves interception and delay are active.
+                        // 2. Basic IPv4 UDP Parsing (Proof of Interception)
+                        if (len >= 28) {
+                            uint8_t version = (buffer[0] >> 4) & 0x0F;
+                            uint8_t protocol = buffer[9];
+                            if (version == 4 && protocol == 17) { // UDP
+                                uint32_t dest_ip = (buffer[16] << 24) | (buffer[17] << 16) | (buffer[18] << 8) | buffer[19];
+                                uint16_t dest_port = (buffer[36] << 8) | buffer[37];
+                                // Note: Full NAT routing requires connection tracking. 
+                                // This block proves interception and delay are active.
+                            }
                         }
                     }
                 }
@@ -123,7 +134,9 @@ public:
         LOGI("Event loop exited.");
     }
 
-    void stop() { running_.store(false, std::memory_order_relaxed); }
+    void stop() { 
+        running_.store(false, std::memory_order_relaxed); 
+    }
 };
 
 extern "C" JNIEXPORT void JNICALL
