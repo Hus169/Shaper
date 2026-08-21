@@ -1,14 +1,12 @@
 package com.axiom.shaper
 
 import android.Manifest
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.VpnService
 import android.os.Build
 import android.os.Bundle
 import android.widget.Button
-import android.widget.EditText
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
@@ -20,13 +18,12 @@ import androidx.core.content.ContextCompat
 class MainActivity : AppCompatActivity() {
     private val NOTIFICATION_REQUEST_CODE = 101
     private lateinit var btnToggleTun: Button
-    private lateinit var btnToggleWan: Button
-    private lateinit var etTargetIp: EditText
-    private lateinit var sbBandwidth: SeekBar
-    private lateinit var tvSliderValue: TextView
+    private lateinit var btnToggleAirtime: Button
+    private lateinit var sbIntensity: SeekBar
+    private lateinit var tvIntensityValue: TextView
     private var isTunActive = false
-    private var isWanActive = false
-    private var currentMbps = 0
+    private var isAirtimeActive = false
+    private var currentIntensity = 50
 
     private val vpnLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) startTunService()
@@ -37,10 +34,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         btnToggleTun = findViewById(R.id.btn_toggle_tun)
-        btnToggleWan = findViewById(R.id.btn_toggle_wan)
-        etTargetIp = findViewById(R.id.et_target_ip)
-        sbBandwidth = findViewById(R.id.sb_bandwidth)
-        tvSliderValue = findViewById(R.id.tv_slider_value)
+        btnToggleAirtime = findViewById(R.id.btn_toggle_airtime)
+        sbIntensity = findViewById(R.id.sb_intensity)
+        tvIntensityValue = findViewById(R.id.tv_intensity_value)
 
         btnToggleTun.setOnClickListener {
             if (isTunActive) {
@@ -50,33 +46,28 @@ class MainActivity : AppCompatActivity() {
             } else { requestPermissionsAndStartTun() }
         }
 
-        sbBandwidth.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+        sbIntensity.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                currentMbps = progress
-                tvSliderValue.text = "$currentMbps Mbps"
+                currentIntensity = progress
+                tvIntensityValue.text = "$currentIntensity / 100"
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
 
-        btnToggleWan.setOnClickListener {
-            if (isWanActive) {
-                WanSaturator.stop()
-                isWanActive = false
-                btnToggleWan.text = "START WAN SATURATION"
-                Toast.makeText(this, "WAN Saturator Disengaged.", Toast.LENGTH_SHORT).show()
+        btnToggleAirtime.setOnClickListener {
+            if (isAirtimeActive) {
+                AirtimeFlooder.stop()
+                isAirtimeActive = false
+                btnToggleAirtime.text = "START AIRTIME EXHAUSTION"
+                btnToggleAirtime.backgroundTintList = android.content.res.ColorStateList.valueOf(getColor(android.R.color.holo_red_light))
+                Toast.makeText(this, "Airtime Exhaustion Disengaged.", Toast.LENGTH_SHORT).show()
             } else {
-                val ip = etTargetIp.text.toString().trim()
-                if (ip.isEmpty() || !ip.contains(".")) {
-                    Toast.makeText(this, "Enter a valid Target IP", Toast.LENGTH_SHORT).show(); return@setOnClickListener
-                }
-                if (currentMbps == 0) {
-                    Toast.makeText(this, "Set bandwidth > 0 Mbps", Toast.LENGTH_SHORT).show(); return@setOnClickListener
-                }
-                WanSaturator.start(ip, 5201, currentMbps)
-                isWanActive = true
-                btnToggleWan.text = "STOP WAN SATURATION"
-                Toast.makeText(this, "Saturating WAN at $currentMbps Mbps...", Toast.LENGTH_SHORT).show()
+                AirtimeFlooder.start(currentIntensity)
+                isAirtimeActive = true
+                btnToggleAirtime.text = "STOP AIRTIME EXHAUSTION"
+                btnToggleAirtime.backgroundTintList = android.content.res.ColorStateList.valueOf(getColor(android.R.color.holo_green_dark))
+                Toast.makeText(this, "Choking Wi-Fi airtime at intensity $currentIntensity...", Toast.LENGTH_SHORT).show()
             }
         }
     }

@@ -9,6 +9,7 @@
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:layout_marginTop="16dp" android:text="AXIOM SHAPER"
             android:textColor="#00E676" android:textSize="24sp" android:textStyle="bold" android:letterSpacing="0.1" />
+            
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
             android:layout_marginTop="32dp" android:text="1. LOCAL DEVICE SHAPER (VpnService)"
             android:textColor="#78909C" android:textSize="14sp" android:textStyle="bold" />
@@ -16,26 +17,22 @@
             android:layout_height="wrap_content" android:layout_marginTop="8dp"
             android:backgroundTint="#00E676" android:text="ENGAGE LOCAL MATRIX"
             android:textColor="#121212" android:textStyle="bold" />
+            
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginTop="32dp" android:text="2. WAN LINK SATURATOR (Data Plane)"
+            android:layout_marginTop="32dp" android:text="2. LOCAL AIRTIME EXHAUSTION (No External Target)"
             android:textColor="#78909C" android:textSize="14sp" android:textStyle="bold" />
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:text="Target IP (e.g., iPerf3 Server):" android:textColor="#B0BEC5" android:layout_marginTop="16dp"/>
-        <EditText android:id="@+id/et_target_ip" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:hint="iperf.he.net"
-            android:textColor="#FFFFFF" android:textColorHint="#546E7A"
-            android:inputType="text" android:backgroundTint="#00E676"/>
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:text="Bandwidth Reservation (Mbps):" android:textColor="#B0BEC5" android:layout_marginTop="16dp"/>
-        <SeekBar android:id="@+id/sb_bandwidth" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:max="100" android:progress="0"
-            android:progressTint="#00E676" android:thumbTint="#00E676"/>
-        <TextView android:id="@+id/tv_slider_value" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:text="0 Mbps"
-            android:textColor="#00E676" android:textSize="18sp" android:textStyle="bold" android:gravity="center"/>
-        <Button android:id="@+id/btn_toggle_wan" android:layout_width="match_parent"
+            android:text="Congestion Intensity (Chokes Wi-Fi for ALL devices):" 
+            android:textColor="#B0BEC5" android:layout_marginTop="16dp"/>
+        <SeekBar android:id="@+id/sb_intensity" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:max="100" android:progress="50"
+            android:progressTint="#FF5252" android:thumbTint="#FF5252"/>
+        <TextView android:id="@+id/tv_intensity_value" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="50 / 100"
+            android:textColor="#FF5252" android:textSize="18sp" android:textStyle="bold" android:gravity="center"/>
+        <Button android:id="@+id/btn_toggle_airtime" android:layout_width="match_parent"
             android:layout_height="wrap_content" android:layout_marginTop="16dp"
-            android:backgroundTint="#FF5252" android:text="START WAN SATURATION"
+            android:backgroundTint="#FF5252" android:text="START AIRTIME EXHAUSTION"
             android:textColor="#FFFFFF" android:textStyle="bold" />
     </LinearLayout>
 </ScrollView>
