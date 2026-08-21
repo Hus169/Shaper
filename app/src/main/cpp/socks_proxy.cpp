@@ -3,6 +3,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <netdb.h> // Added for addrinfo and freeaddrinfo
 #include <poll.h>
 #include <thread>
 #include <atomic>
@@ -61,35 +62,85 @@ void pipe_data(int src, int dst, DegradationEngine& eng) {
 }
 
 void handle_client(int c_fd) {
-    int r_fd = -1; uint8_t ver, nmeth;
-    if (recv(c_fd, &ver, 1, 0) != 1 || recv(c_fd, &nmeth, 1, 0) != 1) goto end;
+    int r_fd = -1; 
+    uint8_t ver, nmeth;
+    
+    // Read version and number of methods
+    if (recv(c_fd, &ver, 1, 0) != 1 || recv(c_fd, &nmeth, 1, 0) != 1) {
+        close(c_fd); return;
+    }
+    
     std::vector<uint8_t> meth(nmeth);
-    if (nmeth > 0 && recv(c_fd, meth.data(), nmeth, 0) != nmeth) goto end;
-    uint8_t auth[2] = {5, 0}; send(c_fd, auth, 2, MSG_NOSIGNAL);
-    uint8_t req[4]; if (recv(c_fd, req, 4, 0) != 4) goto end;
+    if (nmeth > 0 && recv(c_fd, meth.data(), nmeth, 0) != nmeth) {
+        close(c_fd); return;
+    }
+    
+    uint8_t auth[2] = {5, 0}; 
+    send(c_fd, auth, 2, MSG_NOSIGNAL);
+    
+    uint8_t req[4]; 
+    if (recv(c_fd, req, 4, 0) != 4) {
+        close(c_fd); return;
+    }
+    
     std::string host;
-    if (req[3] == 1) { uint8_t ip[4]; recv(c_fd, ip, 4, 0); char b[16]; inet_ntop(AF_INET, ip, b, 16); host = b; }
-    else if (req[3] == 3) { uint8_t len; recv(c_fd, &len, 1, 0); std::vector<char> d(len); recv(c_fd, (uint8_t*)d.data(), len, 0); host.assign(d.begin(), d.end()); }
-    uint8_t p[2]; recv(c_fd, p, 2, 0);
-    struct addrinfo hints{}, *res; hints.ai_family = AF_UNSPEC; hints.ai_socktype = SOCK_STREAM;
-    if (getaddrinfo(host.c_str(), std::to_string((p[0]<<8)|p[1]).c_str(), &hints, &res) != 0) goto end;
+    if (req[3] == 1) { 
+        uint8_t ip[4]; 
+        if (recv(c_fd, ip, 4, 0) != 4) { close(c_fd); return; }
+        char b[16]; 
+        inet_ntop(AF_INET, ip, b, 16); 
+        host = b; 
+    } else if (req[3] == 3) { 
+        uint8_t len; 
+        if (recv(c_fd, &len, 1, 0) != 1) { close(c_fd); return; }
+        std::vector<char> d(len); 
+        if (recv(c_fd, (uint8_t*)d.data(), len, 0) != len) { close(c_fd); return; }
+        host.assign(d.begin(), d.end()); 
+    } else {
+        close(c_fd); return;
+    }
+    
+    uint8_t p[2]; 
+    if (recv(c_fd, p, 2, 0) != 2) {
+        close(c_fd); return;
+    }
+    
+    struct addrinfo hints{}, *res = nullptr; 
+    hints.ai_family = AF_UNSPEC; 
+    hints.ai_socktype = SOCK_STREAM;
+    
+    std::string port_str = std::to_string((p[0]<<8)|p[1]);
+    if (getaddrinfo(host.c_str(), port_str.c_str(), &hints, &res) != 0) {
+        close(c_fd); return;
+    }
+    
     r_fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-    if (connect(r_fd, res->ai_addr, res->ai_addrlen) < 0) { close(r_fd); r_fd = -1; freeaddrinfo(res); goto end; }
+    if (r_fd < 0 || connect(r_fd, res->ai_addr, res->ai_addrlen) < 0) { 
+        if (r_fd >= 0) close(r_fd); 
+        freeaddrinfo(res); 
+        close(c_fd); 
+        return; 
+    }
     freeaddrinfo(res);
-    uint8_t reply[10] = {5,0,0,1,0,0,0,0,0,0}; send(c_fd, reply, 10, MSG_NOSIGNAL);
+    
+    uint8_t reply[10] = {5,0,0,1,0,0,0,0,0,0}; 
+    send(c_fd, reply, 10, MSG_NOSIGNAL);
+    
     DegradationEngine eng(g_bps, g_delay, g_jitter, g_loss);
     std::thread t1(pipe_data, c_fd, r_fd, std::ref(eng));
     std::thread t2(pipe_data, r_fd, c_fd, std::ref(eng));
-    t1.join(); t2.join();
-end:
-    if (r_fd >= 0) close(r_fd); close(c_fd);
+    
+    t1.join(); 
+    t2.join();
+    
+    if (r_fd >= 0) close(r_fd); 
+    close(c_fd);
 }
 
 void server_thread(int port) {
     g_listen_fd = socket(AF_INET, SOCK_STREAM, 0);
     int reuse = 1; setsockopt(g_listen_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
     struct sockaddr_in addr{}; addr.sin_family = AF_INET; addr.sin_port = htons(port); 
-    // CRITICAL: Bind to 0.0.0.0 so Hotspot clients can reach it
     addr.sin_addr.s_addr = htonl(INADDR_ANY); 
     if (bind(g_listen_fd, (struct sockaddr*)&addr, sizeof(addr)) < 0 || listen(g_listen_fd, 64) < 0) {
         LOGI("Bind failed on port %d", port); close(g_listen_fd); g_listen_fd = -1; return;
