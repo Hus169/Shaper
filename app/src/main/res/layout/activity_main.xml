@@ -1,38 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent"
-    android:background="#121212" android:padding="24dp">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:gravity="center_horizontal" android:orientation="vertical">
-        <ImageView android:layout_width="80dp" android:layout_height="80dp"
-            android:src="@drawable/ic_axiom_logo" android:contentDescription="Axiom Logo" />
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:layout_marginTop="16dp" android:text="AXIOM SHAPER"
-            android:textColor="#00E676" android:textSize="24sp" android:textStyle="bold" android:letterSpacing="0.1" />
-            
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginTop="32dp" android:text="1. LOCAL DEVICE SHAPER (VpnService)"
-            android:textColor="#78909C" android:textSize="14sp" android:textStyle="bold" />
-        <Button android:id="@+id/btn_toggle_tun" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:layout_marginTop="8dp"
-            android:backgroundTint="#00E676" android:text="ENGAGE LOCAL MATRIX"
-            android:textColor="#121212" android:textStyle="bold" />
-            
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginTop="32dp" android:text="2. LOCAL AIRTIME EXHAUSTION (No External Target)"
-            android:textColor="#78909C" android:textSize="14sp" android:textStyle="bold" />
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:text="Congestion Intensity (Chokes Wi-Fi for ALL devices):" 
-            android:textColor="#B0BEC5" android:layout_marginTop="16dp"/>
-        <SeekBar android:id="@+id/sb_intensity" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:max="100" android:progress="50"
-            android:progressTint="#FF5252" android:thumbTint="#FF5252"/>
-        <TextView android:id="@+id/tv_intensity_value" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:text="50 / 100"
-            android:textColor="#FF5252" android:textSize="18sp" android:textStyle="bold" android:gravity="center"/>
-        <Button android:id="@+id/btn_toggle_airtime" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:layout_marginTop="16dp"
-            android:backgroundTint="#FF5252" android:text="START AIRTIME EXHAUSTION"
-            android:textColor="#FFFFFF" android:textStyle="bold" />
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="#121212" android:padding="24dp">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_horizontal" android:orientation="vertical">
+        <ImageView android:layout_width="80dp" android:layout_height="80dp" android:src="@drawable/ic_axiom_logo" android:contentDescription="Axiom Logo" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:text="AXIOM GATEWAY" android:textColor="#00E676" android:textSize="24sp" android:textStyle="bold" android:letterSpacing="0.1" />
+        
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="32dp" android:text="1. LOCAL DEVICE TUN (VpnService)" android:textColor="#78909C" android:textSize="14sp" android:textStyle="bold" />
+        <Button android:id="@+id/btn_toggle_tun" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:backgroundTint="#00E676" android:text="ENGAGE LOCAL TUN" android:textColor="#121212" android:textStyle="bold" />
+        
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="32dp" android:text="2. HOTSPOT GATEWAY (Throttle Connected Clients)" android:textColor="#78909C" android:textSize="14sp" android:textStyle="bold" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Client Bandwidth Limit:" android:textColor="#B0BEC5" android:layout_marginTop="16dp"/>
+        <SeekBar android:id="@+id/sb_bandwidth" android:layout_width="match_parent" android:layout_height="wrap_content" android:max="100" android:progress="10" android:progressTint="#FF5252" android:thumbTint="#FF5252"/>
+        <TextView android:id="@+id/tv_bandwidth_value" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="10 Mbps" android:textColor="#FF5252" android:textSize="18sp" android:textStyle="bold" android:gravity="center"/>
+        <Button android:id="@+id/btn_toggle_gateway" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:backgroundTint="#FF5252" android:text="ENGAGE HOTSPOT GATEWAY" android:textColor="#FFFFFF" android:textStyle="bold" />
+        
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="INSTRUCTIONS:\n1. Turn on Android Hotspot.\n2. Connect target devices to Hotspot.\n3. On target device Wi-Fi settings, set Manual Proxy to your Phone's Hotspot IP and Port 1080." android:textColor="#546E7A" android:textSize="12sp" android:gravity="center"/>
     </LinearLayout>
 </ScrollView>
